@@ -1,119 +1,195 @@
 <h1 align="center">
-  <img src="https://orangefox.download/fox.svg" height="60" style="vertical-align:bottom"/> 
-  OrangeFox Recovery Builder
+  <img src="https://orangefox.download/fox.svg" height="60" style="vertical-align:bottom"/>
+  OrangeFox Recovery Builder — Xiaomi onyx
 </h1>
 
 <h3 align="center">
-  <i>一个简单易用的OrangeFox构建器，使用Github Actions</i>
+  <i>基于 GitHub Actions 的 OrangeFox Recovery 云端构建器，预装中文字体与中文语言支持</i>
 </h3>
 
-## 🚢快速开始
-首先Fork本仓库，你还需要设备树文件和`OrangeFoxConfig.mk`，一切准备就绪后，你可以开始构建OF。完毕后所有的产物都会在Releases中，具体步骤如下
+<p align="center">
+  <strong>设备</strong>：Xiaomi Redmi Turbo 4 Pro / POCO F7 (onyx)<br>
+  <strong>平台</strong>：Qualcomm SM8735<br>
+  <strong>OrangeFox</strong>：R12.0 (Android 14 / SDK 34)<br>
+  <strong>语言</strong>：简体中文（默认）/ English
+</p>
 
-### 📁设备树与OrangeFoxConfig.mk
-你首先需要准备好设备的设备树，并且将其Fork到你的用户下，接着在项目目录下新建`OrangeFoxConfig.mk`，按照注释填写
+---
 
-```
-# ==========================================
-# 1. 基础信息 (这块随便填)
-# ==========================================
-OF_MAINTAINER_PATCH_VERSION := 1
-OF_MAINTAINER := Lime
-# 这里的 1 代表这是第一个编译版本
-OF_MAINTAINER_AVATAR := /dev/null
+## 项目简介
 
-# ==========================================
-# 2. 屏幕与UI配置 (【必改】请根据你机型修改)
-# ==========================================
-# Redmi 12C 是 720x1650 的屏幕。如果你是别的手机，请查清楚分辨率高度
-OF_SCREEN_H := 1650
+本仓库是 [OrangeFox-Recovery-Builder](https://github.com/YJDDGT/OrangeFox-Recovery-Builder) 的独立构建仓库，专为 **Xiaomi onyx** 设备定制，并额外集成了 **中文字体与中文语言支持**。
 
-# 状态栏高度：这是为了避让刘海/水滴屏出现奇奇怪怪的问题
-OF_STATUS_H := 65
+原始 Recovery（`OrangeFox-R12.0-Unofficial-onyx.zip`）功能完整但缺少中文字体，导致界面中文显示为方块（tofu）。本项目通过以下配置解决该问题：
 
-# 左右边距：避开屏幕圆角
-OF_STATUS_INDENT_LEFT := 48
-OF_STATUS_INDENT_RIGHT := 48
+| 配置项 | 作用 |
+|--------|------|
+| `FOX_USE_MISANS_FONTS=1` | 使用小米 MiSans 字体替换默认 InterDisplay，正确渲染 CJK 字符 |
+| `TW_EXTRA_LANGUAGES := true` | 启用包括中文在内的多语言字符串 |
+| `TW_DEFAULT_LANGUAGE := zh_CN` | 设置默认语言为简体中文 |
 
-# 时钟位置：1=左边, 2=中间 (水滴屏建议放左边 1)
-OF_CLOCK_POS := 1
+以上修改已提交至设备树仓库 [android_device_xiaomi_onyx_recovery](https://github.com/YJDDGT/android_device_xiaomi_onyx_recovery) 的 `fox_12.0` 分支。
 
-# 允许在设置里禁用导航栏
-OF_ALLOW_DISABLE_NAVBAR := 0
+---
 
-# ==========================================
-# 3. 核心功能
-# ==========================================
-OF_USE_MAGISKBOOT := 1
-OF_USE_MAGISKBOOT_FOR_ALL_PATCHES := 0
-OF_NO_RELOAD_MAGISKBOOT := 1
-OF_NO_TREBLE_COMPATIBILITY_CHECK := 1
-OF_NO_MIUI_PATCH_WARNING := 1
+## 构建方法
 
-# ==========================================
-# 4. 【关键】Android 12+ 解密与防砖配置
-# ==========================================
-# 针对 Metadata 加密的等待逻辑，解决 Data 挂载慢或失败
-OF_SKIP_METADATA_DECRYPTION_WAIT := 0
+### 方式一：GitHub Actions 网页触发
 
-# 不要修改被加密的设备（防止触发 AVB 红字无法开机）
-OF_DONT_PATCH_ENCRYPTED_DEVICE := 1
+1. 进入仓库的 **Actions** 标签页
+2. 左侧选择 **OrangeFox - 构建** 工作流
+3. 点击右上角 **Run workflow**，填写以下参数：
 
-# 保持 DM-Verity 状态，防止修改 System 后出现傻逼提示
-OF_KEEP_DM_VERITY := 1
+| 参数 | 说明 | 本项目填写的值 |
+|------|------|----------------|
+| OrangeFox 版本 | OrangeFox manifest 分支 | `14.1` |
+| OrangeFox 设备树 | 设备树仓库 URL | `https://github.com/YJDDGT/android_device_xiaomi_onyx_recovery` |
+| OrangeFox 设备树分支 | 设备树分支名 | `fox_12.0` |
+| 指定设备路径 | 设备在源码树中的路径 | `device/xiaomi/onyx` |
+| 指定设备代号 | 设备代号 | `onyx` |
+| 构建目标 | 镜像类型（onyx 有独立 recovery 分区） | `recovery` |
+| 设备名称 | 显示在 Release 中的名称 | `Xiaomi Redmi Turbo 4 Pro (POCO F7)` |
 
-# 强制使用 magiskboot 可以在刷入时自动修补 Boot，避免掉 Root
-OF_USE_MAGISKBOOT_COMPRESSED_WEBP := 0
+4. 点击底部绿色 **Run workflow** 开始构建
+5. 构建预计耗时 **1–2 小时**（含源码同步与编译）
 
-# ==========================================
-# 5. 其他杂项
-# ==========================================
-# 启用很多好用的小工具
-OF_ENABLE_LPTOOLS := 1
-# 默认备份列表
-OF_QUICK_BACKUP_LIST := /boot;/data;
-```
+### 方式二：API 触发
 
-接着，在`BoardConfig.mk`尾部引用
-
-```
-# 添加这行代码来加载 OrangeFoxConfig.mk
--include $(DEVICE_PATH)/OrangeFoxConfig.mk
+```bash
+curl -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  https://api.github.com/repos/YJDDGT/OrangeFox-Builder-Onyx/actions/workflows/OrangeFox-Compile.yml/dispatches \
+  -d '{
+    "ref": "main",
+    "inputs": {
+      "MANIFEST_BRANCH": "14.1",
+      "DEVICE_TREE": "https://github.com/YJDDGT/android_device_xiaomi_onyx_recovery",
+      "DEVICE_TREE_BRANCH": "fox_12.0",
+      "DEVICE_PATH": "device/xiaomi/onyx",
+      "DEVICE_NAME": "onyx",
+      "BUILD_TARGET": "recovery",
+      "DN": "Xiaomi Redmi Turbo 4 Pro (POCO F7)"
+    }
+  }'
 ```
 
-填写完毕只需要Push即可，准备好推送过后的仓库链接
+---
 
-### 🚀开始构建
-在顶部`Action` 标签 > `All workflows` > `OrangeFox - 构建 ` > `Run workflow`
+## 获取构建产物
 
-按照要求填写信息
-`OrangeFox 版本` - 保持默认12.1即可，14.1未经过实测，可能会存在许多问题<br><br>
-`OrangeFox设备树` - 拷贝设备树的仓库链接<br><br>
-`OrangeFox设备树分支` - 设备树的分支，一般是main或者master<br><br>
-`指定设备路径` - 一般为`device/${品牌}/${设备代号}`<br><br>
-`指定设备代号` - 设备代号，通过搜索引擎或者`fastboot getvar product`查询<br><br>
-`构建目标` - 构建的镜像，`boot`/`recovery`，前者适用于无独立REC分区的设备，后者反之<br><br>
-*对于无独立Rec的设备强行构建Rec后只会生成OrangeFox 的卡刷包 (.zip)，这需要你自备其他Rec并进行固化，如若无第三方Rec，可以构建Boot后于OrangeFox内进行固化操作*
-<br><br>`设备名称` - 设备名称，随意填写，主要是存在发行版的版本信息内（如：iPhone6s Plus/Redmi K20 Pro等），无硬性要求<br><br>
+构建成功后，产物（`recovery.img` 和 OrangeFox 卡刷包 `.zip`）会自动上传到：
 
-点击底部绿色`Run workflow`开始构建，整个过程时间较长，耐心等待<br><br>
-完毕后你可以在仓库的`Releases`中查看并下载镜像
+> **[Releases 页面](https://github.com/YJDDGT/OrangeFox-Builder-Onyx/releases)**
 
-### 📱刷入镜像
-使用fastboot(无独立REC分区设备)
+Release 标题格式为 `onyx // YYYYMMDD`，包含以下信息：
+- 构建编号
+- 设备名称与代号
+- OrangeFox 版本
+- 构建日期
+
+---
+
+## 刷入 Recovery
+
+onyx 拥有独立的 recovery 分区，支持直接 fastboot 刷入：
+
+### 方法一：Fastboot 刷入（推荐）
+
+```bash
+# 进入 fastboot 模式
+adb reboot bootloader
+
+# 刷入 recovery 镜像
+fastboot flash recovery recovery.img
+
+# 重启进入 recovery 验证
+fastboot reboot recovery
+```
+
+### 方法二：在现有 Recovery 中刷入卡刷包
+
+1. 将 `OrangeFox-R12.0-*.zip` 传入手机
+2. 进入现有的 OrangeFox / TWRP Recovery
+3. 选择 **Install** → 选择 zip 包 → 滑动刷入
+4. 刷入完成后重启进入 Recovery
+
+---
+
+## 构建流程
 
 ```
-fastboot falsh boot boot.img
+GitHub Actions 触发
+    │
+    ▼
+┌─────────────────────────┐
+│  构建环境准备             │  安装依赖、配置 Swap 24GB
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│  同步 OrangeFox 源码      │  gitlab.com/OrangeFox/sync
+│  (fox_14.1 manifest)     │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│  克隆设备树               │  android_device_xiaomi_onyx_recovery
+│  (含中文支持配置)          │  fox_12.0 分支
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│  编译 Recovery 镜像       │  lunch twrp_onyx-eng && mka recoveryimage
+│  (含 MiSans 中文字体)     │
+└───────────┬─────────────┘
+            ▼
+┌─────────────────────────┐
+│  整理产物 & 上传 Release  │  recovery.img + OrangeFox.zip
+└─────────────────────────┘
 ```
-对于Rec固化你需要自备原厂Boot，即先刷入一遍原厂再使用OF固化即可
 
-<br>
+---
 
-使用fastboot(有独立REC分区设备)
+## 设备树中文支持详情
+
+设备树仓库 `fox_12.0` 分支中的关键修改（commit `a3d1586`）：
+
+**`BoardConfig.mk`**
+```makefile
+# 启用多语言（含中文）
+TW_EXTRA_LANGUAGES := true
+# 默认语言设为简体中文
+TW_DEFAULT_LANGUAGE := zh_CN
 ```
-fastboot falsh boot boot.img
+
+**`vendorsetup.sh`**
+```bash
+# 使用 MiSans 字体，正确渲染中文字符
+export FOX_USE_MISANS_FONTS=1
 ```
 
-## 🌸致谢
-该项目基于[**OrangeFox-Action-Builder**](OrangeFox-Action-Builder)修改并进行优化，对原有项目添加了中文支持和部分工作流代码优化。<br>
-部分代码完善由Gemini 3调整并优化。
+MiSans 字体由 OrangeFox 官方在 `fox_14.1` 分支中支持，通过该环境变量在构建时自动替换默认的 InterDisplay 字体。
+
+---
+
+## 相关仓库
+
+| 仓库 | 说明 |
+|------|------|
+| [OrangeFox-Builder-Onyx](https://github.com/YJDDGT/OrangeFox-Builder-Onyx) | 本仓库 — Actions 构建工作流 |
+| [android_device_xiaomi_onyx_recovery](https://github.com/YJDDGT/android_device_xiaomi_onyx_recovery) | 设备树（含中文支持配置） |
+| [OrangeFox-Recovery-Builder](https://github.com/YJDDGT/OrangeFox-Recovery-Builder) | 原始 Fork 构建仓库 |
+| [OrangeFox 官方](https://gitlab.com/OrangeFox) | OrangeFox 源码与同步脚本 |
+
+---
+
+## 致谢
+
+- [OrangeFox Recovery](https://gitlab.com/OrangeFox) — 完整的 Recovery 项目
+- [TeamWin / TWRP](https://github.com/TeamWin) — TWRP 核心框架
+- [azwhikaru](https://github.com/azwhikaru) — Recovery Builder Template
+- 原始 [OrangeFox-Recovery-Builder](https://github.com/YJDDGT/OrangeFox-Recovery-Builder) 构建脚本的作者与贡献者
+
+---
+
+<p align="center">
+  <sub>本项目仅供学习和个人使用，刷机有风险，操作需谨慎。</sub>
+</p>
