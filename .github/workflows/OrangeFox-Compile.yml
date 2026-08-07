@@ -112,7 +112,11 @@ jobs:
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
         set -e
-        lunch twrp_${{ inputs.DEVICE_NAME }}-eng && mka ${{ inputs.BUILD_TARGET }}image
+        if [ "${{ inputs.MANIFEST_BRANCH }}" = "14.1" ]; then
+          lunch twrp_${{ inputs.DEVICE_NAME }}-ap2a-eng && mka ${{ inputs.BUILD_TARGET }}image
+        else
+          lunch twrp_${{ inputs.DEVICE_NAME }}-eng && mka ${{ inputs.BUILD_TARGET }}image
+        fi
 
     - name: 💿 整理镜像
       run: |
